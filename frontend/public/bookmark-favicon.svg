@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <defs>
+    <!-- 主渐变 -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <!-- 书签高亮 -->
+    <linearGradient id="mark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.85"/>
+    </linearGradient>
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#6366f1" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- 背景圆角矩形 -->
+  <rect x="8" y="8" width="84" height="84" rx="20" ry="20" fill="url(#bg)" />
+
+  <!-- 书签图标主体 -->
+  <path d="M35 28 L35 72 L50 62 L65 72 L65 28 Z"
+        fill="url(#mark)"
+        filter="url(#shadow)"
+        stroke="white"
+        stroke-width="2"
+        stroke-linejoin="round"/>
+
+  <!-- 书签顶部横线装饰 -->
+  <rect x="40" y="36" width="20" height="3" rx="1.5" fill="#6366f1" opacity="0.6"/>
+  <rect x="40" y="44" width="16" height="3" rx="1.5" fill="#6366f1" opacity="0.4"/>
+</svg>
