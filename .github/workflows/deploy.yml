@@ -48,7 +48,7 @@ jobs:
         run: |
           test -n "${{ secrets.SERVER_HOST }}" || (echo "Missing secret: SERVER_HOST" && exit 1)
           test -n "${{ secrets.SERVER_USER }}" || (echo "Missing secret: SERVER_USER" && exit 1)
-          test -n "${{ secrets.SERVER_SSH_KEY }}" || (echo "Missing secret: SERVER_SSH_KEY" && exit 1)
+          test -n "${{ secrets.SERVER_SSH_KEY }}${{ secrets.SERVER_PASSWORD }}" || (echo "Missing secret: SERVER_SSH_KEY or SERVER_PASSWORD" && exit 1)
           test -n "${{ secrets.SERVER_APP_DIR }}" || (echo "Missing secret: SERVER_APP_DIR" && exit 1)
           test -n "${{ secrets.GHCR_TOKEN }}" || (echo "Missing secret: GHCR_TOKEN" && exit 1)
 
@@ -85,6 +85,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           script: |
             mkdir -p "${{ secrets.SERVER_APP_DIR }}/deploy/nginx"
@@ -95,6 +97,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           source: "docker-compose.prod.yml,deploy/nginx/default.conf"
           target: ${{ secrets.SERVER_APP_DIR }}
@@ -111,6 +115,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           envs: FRONTEND_IMAGE,BACKEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,HTTP_PORT
           script: |

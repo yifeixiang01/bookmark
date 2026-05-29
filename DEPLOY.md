@@ -34,12 +34,26 @@ mkdir -p /opt/bookmark
 | --- | --- |
 | `SERVER_HOST` | 服务器 IP 或域名 |
 | `SERVER_USER` | SSH 用户名 |
-| `SERVER_SSH_KEY` | 可登录服务器的 SSH 私钥 |
+| `SERVER_SSH_KEY` | 可登录服务器的 SSH 私钥；和 `SERVER_PASSWORD` 二选一 |
+| `SERVER_SSH_PASSPHRASE` | SSH 私钥密码；如果私钥没有密码可以不填 |
+| `SERVER_PASSWORD` | SSH 登录密码；和 `SERVER_SSH_KEY` 二选一 |
 | `SERVER_PORT` | SSH 端口，可不填，默认 `22` |
 | `SERVER_APP_DIR` | 服务器部署目录，例如 `/opt/bookmark` |
 | `GHCR_TOKEN` | GitHub Personal Access Token，至少需要 `read:packages` 权限；如果仓库或 package 是私有的，通常还需要 `repo` 权限 |
 
 如果你的 GHCR 镜像包设置为 Public，`GHCR_TOKEN` 仍可保留；如果是 Private，服务器必须用它登录后才能拉取镜像。
+
+推荐使用 `SERVER_SSH_KEY` 私钥登录。如果你想先用密码登录，也可以只配置 `SERVER_PASSWORD`，不配置 `SERVER_SSH_KEY`。
+
+使用私钥时，`SERVER_SSH_KEY` 要填私钥完整内容，不是 `.pub` 公钥。对应的公钥必须已经放在服务器该用户的 `~/.ssh/authorized_keys` 中。
+
+可以先在本机验证这组 SSH 信息是否能登录：
+
+```bash
+ssh -i ~/.ssh/id_ed25519 用户名@服务器IP
+```
+
+如果你用的是 `root` 用户，`SERVER_USER` 就填 `root`；如果你用的是 `ubuntu`、`debian`、`admin` 等用户，就填对应用户名。GitHub Actions 里填的用户必须和服务器 `authorized_keys` 所在用户一致。
 
 可选：在 `Variables` 中添加：
 
