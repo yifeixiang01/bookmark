@@ -21,8 +21,11 @@ docker compose version
 创建部署目录，例如：
 
 ```bash
-mkdir -p /opt/bookmark
+sudo mkdir -p /opt/bookmark
+sudo chown -R "$USER:$USER" /opt/bookmark
 ```
+
+如果你的 `SERVER_USER` 是 `ubuntu`，上面的命令会让 `ubuntu` 用户可以写入 `/opt/bookmark`。否则 GitHub Actions 同步部署文件时会因为权限不足失败。
 
 如果服务器有防火墙或云厂商安全组，需要放行对外 HTTP 端口。当前默认端口是 `8080`。
 
@@ -93,6 +96,8 @@ http://你的服务器IP或域名:8080/health
 ```
 
 如果你在 GitHub Actions Variables 中设置了其他 `HTTP_PORT`，访问地址也要对应换成那个端口。
+
+首次部署需要从 GHCR 拉取前端、后端和 Nginx 镜像，耗时可能较长。Workflow 的部署命令超时时间已设置为 `20m`。
 
 ## 数据持久化
 

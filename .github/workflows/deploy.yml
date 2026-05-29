@@ -88,8 +88,11 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
+          timeout: 30s
+          command_timeout: 2m
           script: |
-            mkdir -p "${{ secrets.SERVER_APP_DIR }}/deploy/nginx"
+            sudo mkdir -p "${{ secrets.SERVER_APP_DIR }}/deploy/nginx"
+            sudo chown -R "$(id -un):$(id -gn)" "${{ secrets.SERVER_APP_DIR }}"
 
       - name: Copy deployment files
         uses: appleboy/scp-action@v0.1.7
@@ -100,6 +103,8 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
+          timeout: 30s
+          command_timeout: 2m
           source: "docker-compose.prod.yml,deploy/nginx/default.conf"
           target: ${{ secrets.SERVER_APP_DIR }}
 
@@ -118,6 +123,8 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
+          timeout: 30s
+          command_timeout: 20m
           envs: FRONTEND_IMAGE,BACKEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,HTTP_PORT
           script: |
             set -e
