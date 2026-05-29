@@ -24,7 +24,7 @@ docker compose version
 mkdir -p /opt/bookmark
 ```
 
-如果服务器有防火墙或云厂商安全组，需要放行 HTTP 端口，默认是 `80`。
+如果服务器有防火墙或云厂商安全组，需要放行对外 HTTP 端口。当前默认端口是 `8080`。
 
 ## GitHub 配置
 
@@ -45,7 +45,15 @@ mkdir -p /opt/bookmark
 
 | 名称 | 说明 |
 | --- | --- |
-| `HTTP_PORT` | 对外 HTTP 端口，默认 `80` |
+| `HTTP_PORT` | 对外 HTTP 端口，默认 `8080` |
+
+如果不想占用服务器的 `80` 端口，可以保持默认 `8080`。部署完成后访问：
+
+```text
+http://你的服务器IP或域名:8080/
+```
+
+如果你以后使用统一的 Nginx/Caddy/Traefik 反向代理占用 `80` 和 `443`，可以让它把域名转发到这个服务的 `8080` 端口。
 
 ## 首次部署
 
@@ -61,14 +69,16 @@ branches:
 提交并 push 后，GitHub Actions 会自动执行部署。部署完成后访问：
 
 ```text
-http://你的服务器IP或域名/
+http://你的服务器IP或域名:8080/
 ```
 
 后端健康检查地址：
 
 ```text
-http://你的服务器IP或域名/health
+http://你的服务器IP或域名:8080/health
 ```
+
+如果你在 GitHub Actions Variables 中设置了其他 `HTTP_PORT`，访问地址也要对应换成那个端口。
 
 ## 数据持久化
 
