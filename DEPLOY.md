@@ -97,7 +97,7 @@ http://你的服务器IP或域名:8080/health
 
 如果你在 GitHub Actions Variables 中设置了其他 `HTTP_PORT`，访问地址也要对应换成那个端口。
 
-首次部署需要从 GHCR 拉取前端、后端和 Nginx 镜像，耗时可能较长。Workflow 的部署命令超时时间已设置为 `20m`。
+首次部署需要从 GHCR 拉取前端、后端和 Nginx 镜像，耗时可能较长。Workflow 的部署命令超时时间已设置为 `70m`，并会对镜像拉取执行最多 3 次重试，每次最多等待 `20m`。
 
 部署时 workflow 会在 `SERVER_APP_DIR` 下写入 `.env`，其中包含：
 

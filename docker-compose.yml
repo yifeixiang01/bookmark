@@ -5,10 +5,20 @@ services:
     build: ./backend
     ports:
       - "3001:3001"
-    volumes:
-      - ./data:/data
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATA_DIR=/data
-    restart: unless-stopped
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"  # 给 Watchtower 监控
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://81.70.95.23:3001/api  # 生产环境改成服务器IP或域名
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

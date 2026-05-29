@@ -124,7 +124,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           timeout: 30s
-          command_timeout: 20m
+          command_timeout: 70m
           envs: FRONTEND_IMAGE,BACKEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,HTTP_PORT
           script: |
             set -e
@@ -135,6 +135,18 @@ jobs:
             HTTP_PORT=$HTTP_PORT
             EOF
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            docker compose -f docker-compose.prod.yml pull
+
+            pull_ok=0
+            for attempt in 1 2 3; do
+              echo "Pulling deployment images, attempt $attempt/3"
+              if timeout 20m docker compose -f docker-compose.prod.yml pull; then
+                pull_ok=1
+                break
+              fi
+              echo "Image pull failed or timed out, retrying in 20 seconds..."
+              sleep 20
+            done
+            test "$pull_ok" = "1"
+
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker image prune -f
