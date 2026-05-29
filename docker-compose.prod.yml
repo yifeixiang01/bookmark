@@ -11,14 +11,18 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ${FRONTEND_IMAGE}
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: /api
     environment:
       - NODE_ENV=production
       - PORT=3000
     restart: unless-stopped
 
   backend:
-    image: ${BACKEND_IMAGE}
+    build:
+      context: ./backend
     volumes:
       - bookmark-data:/data
     environment:
