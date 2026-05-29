@@ -99,6 +99,24 @@ http://你的服务器IP或域名:8080/health
 
 首次部署需要从 GHCR 拉取前端、后端和 Nginx 镜像，耗时可能较长。Workflow 的部署命令超时时间已设置为 `20m`。
 
+部署时 workflow 会在 `SERVER_APP_DIR` 下写入 `.env`，其中包含：
+
+```bash
+FRONTEND_IMAGE=ghcr.io/你的仓库/frontend:latest
+BACKEND_IMAGE=ghcr.io/你的仓库/backend:latest
+HTTP_PORT=8080
+```
+
+因此首次成功部署后，可以在服务器上手动执行：
+
+```bash
+cd /opt/bookmark
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+如果你要在首次自动部署前手动测试，需要先自己创建 `.env` 并填入上面这些变量。
+
 ## 数据持久化
 
 生产环境使用 Docker volume `bookmark-data` 保存 SQLite 数据库，容器重建不会删除数据。
