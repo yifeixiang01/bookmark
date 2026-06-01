@@ -426,7 +426,7 @@ export function CategoryManagerModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-[calc(100vw-3rem)] overflow-hidden sm:max-w-[1100px] xl:max-w-[1240px]">
           <DialogHeader>
             <DialogTitle>分类管理</DialogTitle>
             <DialogDescription>
@@ -434,9 +434,9 @@ export function CategoryManagerModal({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-6 lg:grid-cols-[minmax(300px,0.78fr)_minmax(0,1.22fr)] xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
             {/* Category list */}
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium">分类列表</h4>
                 <Button size="sm" variant="outline" onClick={handleStartAdd}>
@@ -493,7 +493,7 @@ export function CategoryManagerModal({
             </div>
 
             {/* Edit form */}
-            <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+            <div className="min-w-0 space-y-4 rounded-lg border bg-muted/30 p-4">
               {isEditing ? (
                 <>
                   <h4 className="text-sm font-medium">

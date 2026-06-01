@@ -31,7 +31,19 @@ npm install
 npm run dev     # 开发模式，监听 3000 端口
 ```
 
-前端默认通过 `NEXT_PUBLIC_API_URL=http://localhost:3001/api` 连接后端。如需修改，编辑 `frontend/.env.local`。
+开发模式下，前端需要显式连接后端 API。请先创建 `frontend/.env.local`：
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
+
+也可以直接复制 [frontend/.env.example](/d:/Codes/bookmark/frontend/.env.example:1) 为 `frontend/.env.local` 后再按实际地址修改。
+
+说明：
+
+- 本地开发时，`NEXT_PUBLIC_API_URL` 应该写完整后端地址，例如 `http://localhost:3001/api`
+- 生产部署时，前端应通过反向代理走同源 `/api`
+- 如果开发模式下把它留成 `/api`，请求会先打到 Next 开发服务器，本项目没有内置对应的 Next API Route，于是会出现 `/api/categories` 之类的 `404`
 
 ## 生产部署
 
@@ -107,7 +119,7 @@ npm run build
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001/api` | 后端 API 地址 |
+| `NEXT_PUBLIC_API_URL` | `/api`（生产） | 后端 API 地址。开发环境建议在 `frontend/.env.local` 中覆盖为 `http://localhost:3001/api` |
 
 ## 技术栈
 
