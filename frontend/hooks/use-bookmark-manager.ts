@@ -47,7 +47,7 @@ export function useBookmarkManager() {
   const [tagManagerOpen, setTagManagerOpen] = useState(false)
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
 
   // Fetch initial data
   useEffect(() => {
