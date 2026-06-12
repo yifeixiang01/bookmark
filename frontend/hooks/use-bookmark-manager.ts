@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { Bookmark, Category, Tag } from '@/lib/bookmark-data'
+import { Bookmark, Category, Tag, initialCategories } from '@/lib/bookmark-data'
 import { api, ApiBookmark, ApiCategory, ApiTag } from '@/lib/api'
 
 type ViewMode = 'grid' | 'list'
@@ -63,7 +63,7 @@ export function useBookmarkManager() {
         ])
         if (cancelled) return
         setBookmarks(bms.map(apiToBookmark))
-        setCategoriesData(cats.map(apiToCategory))
+        setCategoriesData(cats.length > 0 ? cats.map(apiToCategory) : initialCategories)
         setTagsData(tgs.map(apiToTag))
       } catch (err) {
         console.error('Failed to load data:', err)
