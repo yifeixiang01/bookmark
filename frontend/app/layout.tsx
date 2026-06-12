@@ -32,6 +32,16 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
+          <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-4">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noreferrer"
+              className="pointer-events-auto text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              京ICP备2023017216号-1
+            </a>
+          </div>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
