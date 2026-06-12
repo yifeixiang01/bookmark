@@ -57,6 +57,19 @@ export interface ApiTag {
   color: string
 }
 
+export interface ApiImportBookmarkInput {
+  title: string
+  url: string
+  description?: string
+  favicon?: string
+}
+
+export interface ApiImportResult {
+  imported: ApiBookmark[]
+  skipped: number
+  category: ApiCategory
+}
+
 export interface ApiUser {
   id: string
   username: string
@@ -93,6 +106,8 @@ export const api = {
       tags?: string[]
       favicon?: string
     }) => fetchJson<ApiBookmark>('/bookmarks', { method: 'POST', body: JSON.stringify(data) }),
+    import: (bookmarks: ApiImportBookmarkInput[]) =>
+      fetchJson<ApiImportResult>('/bookmarks/import', { method: 'POST', body: JSON.stringify({ bookmarks }) }),
     update: (id: string, data: Partial<Omit<ApiBookmark, 'id' | 'createdAt' | 'category'>> & { category_id?: string; tags?: string[]; favicon?: string | null }) =>
       fetchJson<ApiBookmark>(`/bookmarks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchJson<void>(`/bookmarks/${id}`, { method: 'DELETE' }),

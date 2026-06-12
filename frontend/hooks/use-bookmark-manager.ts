@@ -44,6 +44,7 @@ export function useBookmarkManager() {
   const [selectedBookmarks, setSelectedBookmarks] = useState<Set<string>>(new Set())
   const [commandOpen, setCommandOpen] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [importModalOpen, setImportModalOpen] = useState(false)
   const [tagManagerOpen, setTagManagerOpen] = useState(false)
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
@@ -149,11 +150,13 @@ export function useBookmarkManager() {
     countMap.set('all', bookmarks.length)
 
     const updateCounts = (cats: Category[]): Category[] => {
-      return cats.map(c => ({
-        ...c,
-        count: countMap.get(c.id) || 0,
-        children: c.children ? updateCounts(c.children) : undefined,
-      }))
+      return cats
+        .map(c => ({
+          ...c,
+          count: countMap.get(c.id) || 0,
+          children: c.children ? updateCounts(c.children) : undefined,
+        }))
+        .filter(c => c.name !== '待处理' || c.count > 0)
     }
 
     return updateCounts(categoriesData)
@@ -195,6 +198,20 @@ export function useBookmarkManager() {
       favicon: bookmark.favicon,
     })
     setBookmarks(prev => [apiToBookmark(newBm), ...prev])
+  }, [])
+
+  const importBookmarks = useCallback(async (bookmarksToImport: { title: string; url: string; favicon?: string }[]) => {
+    const result = await api.bookmarks.import(bookmarksToImport)
+    if (result.imported.length > 0) {
+      const imported = result.imported.map(apiToBookmark)
+      setBookmarks(prev => [...imported, ...prev])
+      setCategoriesData(prev => {
+        const hasPending = prev.some(cat => cat.id === result.category.id)
+        if (hasPending) return prev
+        return [...prev, apiToCategory(result.category)]
+      })
+    }
+    return { imported: result.imported.length, skipped: result.skipped }
   }, [])
 
   const toggleCategory = useCallback((categoryId: string) => {
@@ -418,10 +435,13 @@ export function useBookmarkManager() {
     clearSelection,
     deleteSelected,
     addBookmark,
+    importBookmarks,
     commandOpen,
     setCommandOpen,
     addModalOpen,
     setAddModalOpen,
+    importModalOpen,
+    setImportModalOpen,
     expandedCategories,
     toggleCategory,
     sidebarCollapsed,

@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   ChevronRight,
   Plus,
+  Upload,
   PanelLeftClose,
   PanelLeft,
   Settings2,
@@ -164,6 +165,7 @@ interface CategorySidebarProps {
   expandedCategories: Set<string>
   onToggleCategory: (id: string) => void
   onAddBookmark: () => void
+  onImportBookmarks: () => void
   isCollapsed: boolean
   onToggleCollapse: () => void
   onOpenCategoryManager: () => void
@@ -269,6 +271,7 @@ export function CategorySidebar({
   expandedCategories,
   onToggleCategory,
   onAddBookmark,
+  onImportBookmarks,
   isCollapsed,
   onToggleCollapse,
   onOpenCategoryManager,
@@ -369,6 +372,36 @@ export function CategorySidebar({
             <Plus className="size-4" />
             添加书签
           </Button>
+        )}
+        {!isCollapsed && (
+          <Button
+            onClick={onImportBookmarks}
+            className="mt-2 w-full justify-start gap-2"
+            size="sm"
+            variant="outline"
+          >
+            <Upload className="size-4" />
+            导入收藏夹
+          </Button>
+        )}
+        {isCollapsed && (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onImportBookmarks}
+                  className="mt-2 w-full"
+                  size="icon"
+                  variant="outline"
+                >
+                  <Upload className="size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={8}>
+                <p>导入收藏夹</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 

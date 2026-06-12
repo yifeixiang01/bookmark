@@ -11,6 +11,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { ExternalLink, Plus, Search, Settings } from 'lucide-react'
+import { getFaviconUrl } from '@/lib/favicon'
 
 interface CommandPaletteProps {
   open: boolean
@@ -30,16 +31,6 @@ export function CommandPalette({
   useEffect(() => {
     if (!open) setSearch('')
   }, [open])
-
-  const getFavicon = (bookmark: Bookmark) => {
-    if (bookmark.favicon) return bookmark.favicon
-    try {
-      const domain = new URL(bookmark.url).hostname
-      return `https://www.google.com/s2/favicons?sz=16&domain=${domain}`
-    } catch {
-      return null
-    }
-  }
 
   const filteredBookmarks = bookmarks
     .filter(b => 
@@ -92,9 +83,9 @@ export function CommandPalette({
                 }}
                 className="flex items-center gap-2"
               >
-                {getFavicon(bookmark) ? (
+                {getFaviconUrl(bookmark) ? (
                   <img
-                    src={getFavicon(bookmark)!}
+                    src={getFaviconUrl(bookmark)!}
                     alt=""
                     className="size-4"
                     onError={(e) => {

@@ -11,6 +11,7 @@ import { AddBookmarkModal } from './add-bookmark-modal'
 import { EditBookmarkModal } from './edit-bookmark-modal'
 import { TagManagerModal } from './tag-manager-modal'
 import { CategoryManagerModal } from './category-manager-modal'
+import { ImportBookmarksModal } from './import-bookmarks-modal'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   DndContext,
@@ -40,6 +41,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Bookmark } from '@/lib/bookmark-data'
+import { getFaviconUrl } from '@/lib/favicon'
 
 interface BookmarkManagerProps {
   user: { id: string; username: string }
@@ -71,8 +73,11 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
     clearSelection,
     deleteSelected,
     addBookmark,
+    importBookmarks,
     addModalOpen,
     setAddModalOpen,
+    importModalOpen,
+    setImportModalOpen,
     expandedCategories,
     toggleCategory,
     sidebarCollapsed,
@@ -163,16 +168,6 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
     ? allBookmarks.find(b => b.id === activeDragId)
     : null
 
-  const getFavicon = (bookmark: { url: string; favicon?: string }) => {
-    if (bookmark.favicon) return bookmark.favicon
-    try {
-      const domain = new URL(bookmark.url).hostname
-      return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`
-    } catch {
-      return null
-    }
-  }
-
   // Group bookmarks by category
   const flatCategories = useMemo(() => {
     return categories.flatMap((c) =>
@@ -231,11 +226,10 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
           strategy: MeasuringStrategy.BeforeDragging,
         },
       }}
-      dropAnimation={dropAnimation}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-full min-h-0 overflow-hidden">
         {/* Left sidebar - Categories */}
         <CategorySidebar
           categories={categories}
@@ -244,6 +238,7 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
           expandedCategories={expandedCategories}
           onToggleCategory={toggleCategory}
           onAddBookmark={() => setAddModalOpen(true)}
+          onImportBookmarks={() => setImportModalOpen(true)}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onOpenCategoryManager={() => setCategoryManagerOpen(true)}
@@ -251,7 +246,7 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
         />
 
         {/* Main content */}
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <SearchBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -263,7 +258,7 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
             filteredCount={bookmarks.length}
           />
 
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="min-h-0 flex-1 p-4">
             {loading && (
               <div className="flex flex-col items-center justify-center py-16">
                 <Loader2 className="size-8 animate-spin text-muted-foreground" />
@@ -363,6 +358,12 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
           onAdd={addBookmark}
         />
 
+        <ImportBookmarksModal
+          open={importModalOpen}
+          onOpenChange={setImportModalOpen}
+          onImport={importBookmarks}
+        />
+
         {/* Edit bookmark modal */}
         <EditBookmarkModal
           open={editModalOpen}
@@ -398,13 +399,13 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
         />
 
         {/* Drag overlay */}
-        <DragOverlay>
+        <DragOverlay dropAnimation={dropAnimation}>
           {activeBookmark && (
             <div className="flex w-[80px] flex-col items-center gap-1.5 rounded-lg border border-primary bg-card p-2.5 shadow-2xl rotate-2 scale-110">
               <div className="flex size-9 items-center justify-center rounded-md bg-secondary">
-                {getFavicon(activeBookmark) ? (
+                {getFaviconUrl(activeBookmark) ? (
                   <img
-                    src={getFavicon(activeBookmark)!}
+                    src={getFaviconUrl(activeBookmark)!}
                     alt=""
                     className="size-6 rounded"
                   />

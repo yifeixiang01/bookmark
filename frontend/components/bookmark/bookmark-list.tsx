@@ -18,6 +18,7 @@ import {
 import { ExternalLink, GripVertical, Globe, Clock, Eye, Pencil, Trash2 } from 'lucide-react'
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { getFaviconUrl } from '@/lib/favicon'
 
 interface BookmarkListProps {
   bookmarks: Bookmark[]
@@ -60,16 +61,6 @@ function SortableBookmarkRow({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
-
-  const getFavicon = (bookmark: Bookmark) => {
-    if (bookmark.favicon) return bookmark.favicon
-    try {
-      const domain = new URL(bookmark.url).hostname
-      return `https://www.google.com/s2/favicons?sz=16&domain=${domain}`
-    } catch {
-      return null
-    }
   }
 
   const getTagColor = (tagName: string) => {
@@ -143,9 +134,9 @@ function SortableBookmarkRow({
                   className="flex min-w-0 flex-1 items-center gap-3"
                 >
                   <div className="flex size-4 shrink-0 items-center justify-center">
-                    {getFavicon(bookmark) ? (
+                    {getFaviconUrl(bookmark) ? (
                       <img
-                        src={getFavicon(bookmark)!}
+                        src={getFaviconUrl(bookmark)!}
                         alt=""
                         className="size-4"
                         onError={(e) => {
@@ -209,9 +200,9 @@ function SortableBookmarkRow({
         >
           <div className="flex items-start gap-3 border-b border-border/50 p-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary/80">
-              {getFavicon(bookmark) ? (
+              {getFaviconUrl(bookmark) ? (
                 <img
-                  src={getFavicon(bookmark)!}
+                  src={getFaviconUrl(bookmark)!}
                   alt=""
                   className="size-7 rounded"
                   onError={(e) => {

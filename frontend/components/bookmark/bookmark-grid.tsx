@@ -18,6 +18,7 @@ import {
 import { ExternalLink, GripVertical, Globe, Clock, Eye, Pencil, Trash2 } from 'lucide-react'
 import { useSortable, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { getFaviconUrl } from '@/lib/favicon'
 
 interface BookmarkGridProps {
   bookmarks: Bookmark[]
@@ -60,16 +61,6 @@ function SortableBookmarkCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
-  }
-
-  const getFavicon = (bookmark: Bookmark) => {
-    if (bookmark.favicon) return bookmark.favicon
-    try {
-      const domain = new URL(bookmark.url).hostname
-      return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`
-    } catch {
-      return null
-    }
   }
 
   const getTagColor = (tagName: string) => {
@@ -145,9 +136,9 @@ function SortableBookmarkCard({
                   className="flex w-full flex-col items-center gap-2 pt-4"
                 >
                   <div className="flex size-10 items-center justify-center rounded-md bg-secondary">
-                    {getFavicon(bookmark) ? (
+                    {getFaviconUrl(bookmark) ? (
                       <img
-                        src={getFavicon(bookmark)!}
+                        src={getFaviconUrl(bookmark)!}
                         alt=""
                         className="size-6 rounded"
                         onError={(e) => {
@@ -190,9 +181,9 @@ function SortableBookmarkCard({
         >
           <div className="flex items-start gap-3 border-b border-border/50 p-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary/80">
-              {getFavicon(bookmark) ? (
+              {getFaviconUrl(bookmark) ? (
                 <img
-                  src={getFavicon(bookmark)!}
+                  src={getFaviconUrl(bookmark)!}
                   alt=""
                   className="size-7 rounded"
                   onError={(e) => {

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
+import { randomUUID } from 'crypto'
 import { db } from '../db'
 import { AuthRequest } from '../middleware/auth'
 
@@ -22,6 +23,15 @@ const updateBookmarkSchema = z.object({
   tags: z.array(z.string()).optional(),
   visits: z.number().int().min(0).optional(),
   favicon: z.string().optional().nullable(),
+})
+
+const importBookmarkSchema = z.object({
+  bookmarks: z.array(z.object({
+    title: z.string().min(1),
+    url: z.string().url(),
+    description: z.string().optional(),
+    favicon: z.string().optional(),
+  })).min(1),
 })
 
 function rowToBookmark(row: any) {
@@ -158,6 +168,94 @@ router.post('/', (req: AuthRequest, res) => {
 
   const row = db.prepare('SELECT * FROM bookmarks WHERE id = ?').get(id)
   res.status(201).json(rowToBookmark(row))
+})
+
+router.post('/import', (req: AuthRequest, res) => {
+  const parsed = importBookmarkSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.format() })
+    return
+  }
+
+  const userId = req.userId!
+  const now = Math.floor(Date.now() / 1000)
+
+  const importMany = db.transaction((items: z.infer<typeof importBookmarkSchema>['bookmarks']) => {
+    let pendingCategory = db
+      .prepare('SELECT * FROM categories WHERE name = ? AND user_id = ? LIMIT 1')
+      .get('待处理', userId) as { id: string } | undefined
+
+    if (!pendingCategory) {
+      const maxOrder = db
+        .prepare('SELECT COALESCE(MAX(sort_order), -1) as max_order FROM categories WHERE parent_id IS NULL AND user_id = ?')
+        .get(userId) as { max_order: number }
+      const categoryId = `cat-${randomUUID()}`
+      db.prepare(
+        `INSERT INTO categories (id, name, icon, color, parent_id, sort_order, user_id, created_at)
+         VALUES (?, ?, ?, ?, NULL, ?, ?, ?)`
+      ).run(categoryId, '待处理', 'ArchiveIcon', '#f59e0b', maxOrder.max_order + 1, userId, now)
+      pendingCategory = { id: categoryId }
+    }
+
+    const existingUrls = new Set(
+      (db.prepare('SELECT url FROM bookmarks WHERE user_id = ?').all(userId) as { url: string }[])
+        .map((row) => row.url)
+    )
+
+    const maxSort = db.prepare(
+      `SELECT COALESCE(MAX(sort_order), 0) as max_sort FROM bookmarks WHERE user_id = ?`
+    ).get(userId) as { max_sort: number }
+
+    const insertBookmark = db.prepare(
+      `INSERT INTO bookmarks (id, title, url, description, category_id, favicon, visits, sort_order, user_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`
+    )
+
+    const importedRows: any[] = []
+    let skipped = 0
+    let sortOrder = (maxSort?.max_sort ?? 0) + 1
+
+    for (const item of items) {
+      if (existingUrls.has(item.url)) {
+        skipped += 1
+        continue
+      }
+
+      const id = `bookmark-${randomUUID()}`
+      insertBookmark.run(
+        id,
+        item.title,
+        item.url,
+        item.description || null,
+        pendingCategory.id,
+        item.favicon || null,
+        sortOrder,
+        userId,
+        now
+      )
+      sortOrder += 1
+      existingUrls.add(item.url)
+      importedRows.push(db.prepare('SELECT * FROM bookmarks WHERE id = ?').get(id))
+    }
+
+    const categoryRow = db.prepare('SELECT * FROM categories WHERE id = ?').get(pendingCategory.id) as any
+    return {
+      imported: importedRows.map(rowToBookmark),
+      skipped,
+      category: {
+        id: categoryRow.id,
+        name: categoryRow.name,
+        icon: categoryRow.icon,
+        color: categoryRow.color,
+        count: 0,
+        order: categoryRow.sort_order,
+        children: [],
+      },
+    }
+  })
+
+  const result = importMany(parsed.data.bookmarks)
+  res.status(201).json(result)
 })
 
 router.patch('/:id', (req: AuthRequest, res) => {

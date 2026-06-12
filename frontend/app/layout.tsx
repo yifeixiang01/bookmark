@@ -31,13 +31,15 @@ export default function RootLayout({
     <html lang="zh-CN" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
-          <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-4">
+          <div className="flex min-h-screen flex-col bg-background">
+            <div className="min-h-0 flex-1">
+              {children}
+            </div>
             <a
               href="https://beian.miit.gov.cn/"
               target="_blank"
               rel="noreferrer"
-              className="pointer-events-auto text-xs text-muted-foreground transition-colors hover:text-foreground"
+              className="flex h-8 shrink-0 items-center justify-center border-t border-border bg-background px-4 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               京ICP备2023017216号-1
             </a>

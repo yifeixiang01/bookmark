@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { getFaviconUrl } from '@/lib/favicon'
 import { Loader2 } from 'lucide-react'
 
 interface EditBookmarkModalProps {
@@ -100,8 +101,8 @@ export function EditBookmarkModal({
       } catch {
         // ignore fetch errors
         try {
-          const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname
-          if (!cancelled) setPreviewFavicon(`https://www.google.com/s2/favicons?sz=128&domain=${domain}`)
+          const finalUrl = url.startsWith('http') ? url : `https://${url}`
+          if (!cancelled) setPreviewFavicon(getFaviconUrl({ url: finalUrl }))
         } catch {
           if (!cancelled) setPreviewFavicon(null)
         }
