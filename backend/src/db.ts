@@ -78,10 +78,6 @@ export function initDb() {
       FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
     );
 
-    CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id);
-    CREATE INDEX IF NOT EXISTS idx_bookmarks_created ON bookmarks(created_at);
-    CREATE INDEX IF NOT EXISTS idx_bookmarks_visits ON bookmarks(visits);
-    CREATE INDEX IF NOT EXISTS idx_bookmark_tags_tag ON bookmark_tags(tag_id);
   `)
 
   // Migrate old tables without user_id
@@ -101,7 +97,20 @@ export function initDb() {
   if (tableExists('bookmarks') && !columnExists('bookmarks', 'sort_order')) {
     db.exec(`ALTER TABLE bookmarks ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`)
   }
-  db.exec(`CREATE INDEX IF NOT EXISTS idx_bookmarks_sort_order ON bookmarks(sort_order)`)
+
+  if (tableExists('categories') && !columnExists('categories', 'sort_order')) {
+    db.exec(`ALTER TABLE categories ADD COLUMN sort_order INTEGER`)
+    const categoryRows = db.prepare('SELECT id FROM categories WHERE sort_order IS NULL ORDER BY rowid').all() as
+      Array<{ id: string }>
+    const updateCategoryOrder = db.prepare('UPDATE categories SET sort_order = ? WHERE id = ?')
+    const assignCategoryOrder = db.transaction((rows: Array<{ id: string }>) => {
+      rows.forEach((row, index) => {
+        updateCategoryOrder.run(index, row.id)
+      })
+    })
+    assignCategoryOrder(categoryRows)
+    db.prepare('UPDATE categories SET sort_order = 0 WHERE sort_order IS NULL').run()
+  }
 
   if (tableExists('bookmarks') && !columnExists('bookmarks', 'created_at')) {
     db.exec(`ALTER TABLE bookmarks ADD COLUMN created_at INTEGER`)
@@ -138,7 +147,14 @@ export function initDb() {
   }
 
   // Create user-scoped unique index after migration
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_user_name ON tags(user_id, name)`)
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id);
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_created ON bookmarks(created_at);
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_visits ON bookmarks(visits);
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_sort_order ON bookmarks(sort_order);
+    CREATE INDEX IF NOT EXISTS idx_bookmark_tags_tag ON bookmark_tags(tag_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_user_name ON tags(user_id, name);
+  `)
 }
 
 export interface DbUser {
