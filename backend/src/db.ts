@@ -92,11 +92,29 @@ export function initDb() {
     db.exec(`ALTER TABLE categories ADD COLUMN user_id TEXT`)
   }
 
+  // Migrate bookmarks table: add favicon for databases created before icons were stored.
+  if (tableExists('bookmarks') && !columnExists('bookmarks', 'favicon')) {
+    db.exec(`ALTER TABLE bookmarks ADD COLUMN favicon TEXT`)
+  }
+
   // Migrate bookmarks table: add sort_order
   if (tableExists('bookmarks') && !columnExists('bookmarks', 'sort_order')) {
     db.exec(`ALTER TABLE bookmarks ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`)
   }
   db.exec(`CREATE INDEX IF NOT EXISTS idx_bookmarks_sort_order ON bookmarks(sort_order)`)
+
+  if (tableExists('bookmarks') && !columnExists('bookmarks', 'created_at')) {
+    db.exec(`ALTER TABLE bookmarks ADD COLUMN created_at INTEGER`)
+    db.exec(`UPDATE bookmarks SET created_at = unixepoch() WHERE created_at IS NULL`)
+  }
+  if (tableExists('categories') && !columnExists('categories', 'created_at')) {
+    db.exec(`ALTER TABLE categories ADD COLUMN created_at INTEGER`)
+    db.exec(`UPDATE categories SET created_at = unixepoch() WHERE created_at IS NULL`)
+  }
+  if (tableExists('tags') && !columnExists('tags', 'created_at')) {
+    db.exec(`ALTER TABLE tags ADD COLUMN created_at INTEGER`)
+    db.exec(`UPDATE tags SET created_at = unixepoch() WHERE created_at IS NULL`)
+  }
 
   // Migrate tags: old schema had UNIQUE on name, we need per-user uniqueness
   if (tableExists('tags')) {
