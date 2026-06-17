@@ -16,7 +16,7 @@
 
 ### 1. 启动后端
 
-```bash
+```bash 
 cd backend
 npm install
 npm run seed    # 初始化数据库并填充示例数据（仅首次）
