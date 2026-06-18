@@ -34,8 +34,13 @@ function flattenCategories(rows: any[]): any[] {
 }
 
 router.get('/', (req: AuthRequest, res) => {
-  const rows = db.prepare('SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order').all(req.userId)
-  res.json(flattenCategories(rows))
+  try {
+    const rows = db.prepare('SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order').all(req.userId)
+    res.json(flattenCategories(rows))
+  } catch (err) {
+    console.error('Failed to list categories:', err)
+    res.status(500).json({ error: 'Failed to list categories' })
+  }
 })
 
 router.post('/', (req: AuthRequest, res) => {

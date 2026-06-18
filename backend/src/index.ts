@@ -3,7 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import path from 'path'
-import { initDb } from './db'
+import { getDbDiagnostics, initDb } from './db'
 import { authMiddleware } from './middleware/auth'
 import authRouter from './routes/auth'
 import bookmarksRouter from './routes/bookmarks'
@@ -26,6 +26,10 @@ app.use(express.json())
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+app.get('/health/db', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), database: getDbDiagnostics() })
 })
 
 // Auth routes (public)

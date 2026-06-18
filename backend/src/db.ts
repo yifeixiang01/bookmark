@@ -23,6 +23,11 @@ function tableExists(table: string): boolean {
   return !!row
 }
 
+function getTableColumns(table: string): string[] {
+  if (!tableExists(table)) return []
+  return (db.pragma(`table_info(${table})`) as Array<{ name: string }>).map((column) => column.name)
+}
+
 function hasUniqueConstraint(table: string, column: string): boolean {
   const indexes = db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=?").all(table) as Array<{ sql: string | null }>
   return indexes.some(idx => idx.sql?.includes(`UNIQUE`) && idx.sql?.includes(column))
@@ -155,6 +160,36 @@ export function initDb() {
     CREATE INDEX IF NOT EXISTS idx_bookmark_tags_tag ON bookmark_tags(tag_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_user_name ON tags(user_id, name);
   `)
+}
+
+export function getDbDiagnostics() {
+  const requiredColumns = {
+    users: ['id', 'username', 'password_hash', 'created_at'],
+    categories: ['id', 'name', 'icon', 'color', 'parent_id', 'sort_order', 'user_id', 'created_at'],
+    tags: ['id', 'name', 'color', 'user_id', 'created_at'],
+    bookmarks: ['id', 'title', 'url', 'description', 'category_id', 'visits', 'favicon', 'sort_order', 'user_id', 'created_at'],
+    bookmark_tags: ['bookmark_id', 'tag_id'],
+  }
+
+  const tables = Object.fromEntries(
+    Object.entries(requiredColumns).map(([table, required]) => {
+      const columns = getTableColumns(table)
+      return [
+        table,
+        {
+          exists: tableExists(table),
+          columns,
+          missingColumns: required.filter((column) => !columns.includes(column)),
+        },
+      ]
+    })
+  )
+
+  return {
+    dataDir: DATA_DIR,
+    dbPath: DB_PATH,
+    tables,
+  }
 }
 
 export interface DbUser {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bookmark-manager-secret-key-change-in-production'
 
@@ -13,7 +13,19 @@ export function generateToken(userId: string, username: string): string {
 }
 
 export function verifyToken(token: string): { userId: string; username: string } {
-  return jwt.verify(token, JWT_SECRET) as { userId: string; username: string }
+  const payload = jwt.verify(token, JWT_SECRET) as JwtPayload & {
+    userId?: string
+    id?: string
+    username?: string
+  }
+  const userId = payload.userId || payload.id || payload.sub
+  if (!userId || typeof userId !== 'string') {
+    throw new Error('Token is missing user id')
+  }
+  return {
+    userId,
+    username: payload.username || '',
+  }
 }
 
 export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {

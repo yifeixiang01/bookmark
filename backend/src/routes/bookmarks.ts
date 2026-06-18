@@ -60,69 +60,74 @@ function rowToBookmark(row: any) {
 }
 
 router.get('/', (req: AuthRequest, res) => {
-  const {
-    q,
-    category,
-    tags,
-    sort = 'visits',
-    order = 'desc',
-  } = req.query as {
-    q?: string
-    category?: string
-    tags?: string
-    sort?: string
-    order?: string
-  }
-
-  const userId = req.userId!
-  let sql = `SELECT b.* FROM bookmarks b`
-  const conditions: string[] = ['b.user_id = ?']
-  const params: any[] = [userId]
-
-  if (tags) {
-    const tagList = tags.split(',').filter(Boolean)
-    if (tagList.length > 0) {
-      sql += ` JOIN bookmark_tags bt ON bt.bookmark_id = b.id JOIN tags t ON t.id = bt.tag_id`
-      conditions.push(`t.name IN (${tagList.map(() => '?').join(',')})`)
-      params.push(...tagList)
+  try {
+    const {
+      q,
+      category,
+      tags,
+      sort = 'visits',
+      order = 'desc',
+    } = req.query as {
+      q?: string
+      category?: string
+      tags?: string
+      sort?: string
+      order?: string
     }
+
+    const userId = req.userId!
+    let sql = `SELECT b.* FROM bookmarks b`
+    const conditions: string[] = ['b.user_id = ?']
+    const params: any[] = [userId]
+
+    if (tags) {
+      const tagList = tags.split(',').filter(Boolean)
+      if (tagList.length > 0) {
+        sql += ` JOIN bookmark_tags bt ON bt.bookmark_id = b.id JOIN tags t ON t.id = bt.tag_id`
+        conditions.push(`t.name IN (${tagList.map(() => '?').join(',')})`)
+        params.push(...tagList)
+      }
+    }
+
+    if (category && category !== 'all') {
+      conditions.push(`(b.category_id = ? OR b.category_id LIKE ?)`)
+      params.push(category, `${category}-%`)
+    }
+
+    if (q) {
+      conditions.push(`(b.title LIKE ? OR b.url LIKE ? OR b.description LIKE ?)`)
+      const like = `%${q}%`
+      params.push(like, like, like)
+    }
+
+    sql += ` WHERE ` + conditions.join(' AND ')
+
+    if (tags && tags.split(',').filter(Boolean).length > 0) {
+      sql += ` GROUP BY b.id`
+    }
+
+    let sortCol: string
+    let sortDir: string
+    if (sort === 'custom') {
+      sortCol = 'b.sort_order'
+      sortDir = 'ASC'
+    } else {
+      sortCol =
+        sort === 'recent'
+          ? 'b.created_at'
+          : sort === 'alpha'
+            ? 'b.title'
+            : 'b.visits'
+      sortDir = order === 'asc' ? 'ASC' : 'DESC'
+    }
+    sql += ` ORDER BY ${sortCol} ${sortDir}`
+
+    const rows = db.prepare(sql).all(...params)
+    res.json(rows.map(rowToBookmark))
+  } catch (err) {
+    console.error('Failed to list bookmarks:', err)
+    res.status(500).json({ error: 'Failed to list bookmarks' })
   }
-
-  if (category && category !== 'all') {
-    conditions.push(`(b.category_id = ? OR b.category_id LIKE ?)`)
-    params.push(category, `${category}-%`)
-  }
-
-  if (q) {
-    conditions.push(`(b.title LIKE ? OR b.url LIKE ? OR b.description LIKE ?)`)
-    const like = `%${q}%`
-    params.push(like, like, like)
-  }
-
-  sql += ` WHERE ` + conditions.join(' AND ')
-
-  if (tags && tags.split(',').filter(Boolean).length > 0) {
-    sql += ` GROUP BY b.id`
-  }
-
-  let sortCol: string
-  let sortDir: string
-  if (sort === 'custom') {
-    sortCol = 'b.sort_order'
-    sortDir = 'ASC'
-  } else {
-    sortCol =
-      sort === 'recent'
-        ? 'b.created_at'
-        : sort === 'alpha'
-          ? 'b.title'
-          : 'b.visits'
-    sortDir = order === 'asc' ? 'ASC' : 'DESC'
-  }
-  sql += ` ORDER BY ${sortCol} ${sortDir}`
-
-  const rows = db.prepare(sql).all(...params)
-  res.json(rows.map(rowToBookmark))
 })
 
 router.get('/:id', (req: AuthRequest, res) => {

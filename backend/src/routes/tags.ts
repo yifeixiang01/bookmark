@@ -6,8 +6,13 @@ import { AuthRequest } from '../middleware/auth'
 const router = Router()
 
 router.get('/', (req: AuthRequest, res) => {
-  const rows = db.prepare('SELECT * FROM tags WHERE user_id = ? ORDER BY name').all(req.userId)
-  res.json(rows)
+  try {
+    const rows = db.prepare('SELECT * FROM tags WHERE user_id = ? ORDER BY name').all(req.userId)
+    res.json(rows)
+  } catch (err) {
+    console.error('Failed to list tags:', err)
+    res.status(500).json({ error: 'Failed to list tags' })
+  }
 })
 
 router.post('/', (req: AuthRequest, res) => {
