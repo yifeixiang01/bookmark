@@ -13,6 +13,7 @@ import metaRouter from './routes/meta'
 
 const PORT = parseInt(process.env.PORT || '3001', 10)
 const NODE_ENV = process.env.NODE_ENV || 'development'
+const APP_VERSION = process.env.APP_VERSION || 'dev'
 
 initDb()
 
@@ -30,6 +31,15 @@ app.get('/health', (_req, res) => {
 
 app.get('/health/db', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), database: getDbDiagnostics() })
+})
+
+app.get('/health/version', (_req, res) => {
+  res.json({
+    status: 'ok',
+    version: APP_VERSION,
+    nodeEnv: NODE_ENV,
+    timestamp: new Date().toISOString(),
+  })
 })
 
 // Auth routes (public)
@@ -53,9 +63,13 @@ if (NODE_ENV === 'production') {
 }
 
 // Error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err)
-  res.status(500).json({ error: NODE_ENV === 'production' ? 'Internal server error' : err.message })
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  console.error(`[${requestId}] Unhandled error ${req.method} ${req.originalUrl}:`, err)
+  res.status(500).json({
+    error: NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    requestId,
+  })
 })
 
 app.listen(PORT, '0.0.0.0', () => {
