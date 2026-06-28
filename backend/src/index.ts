@@ -23,6 +23,13 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 app.use(cors({ origin: true, credentials: true }))
 app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use(express.json())
+app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    res.status(400).json({ error: 'Invalid JSON body' })
+    return
+  }
+  next(err)
+})
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -47,6 +54,19 @@ app.use('/api/auth', authRouter)
 
 // Public meta fetch
 app.use('/api/fetch-meta', metaRouter)
+
+app.get('/api/diagnostics/version', (_req, res) => {
+  res.json({
+    status: 'ok',
+    version: APP_VERSION,
+    nodeEnv: NODE_ENV,
+    timestamp: new Date().toISOString(),
+  })
+})
+
+app.get('/api/diagnostics/db', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), database: getDbDiagnostics() })
+})
 
 // Protected API routes
 app.use('/api/bookmarks', authMiddleware, bookmarksRouter)
