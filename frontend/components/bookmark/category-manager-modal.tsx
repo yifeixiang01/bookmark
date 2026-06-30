@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Category, categoryIcons, categoryColors } from '@/lib/bookmark-data'
+import { categoryIconMap, DefaultCategoryIcon, FolderCategoryIcon } from '@/lib/category-icons'
 import { cn } from '@/lib/utils'
 import {
   Dialog,
@@ -31,24 +32,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-  Bookmark,
-  Code2,
-  Palette,
-  Zap,
-  BookOpen,
-  Users,
-  FileText,
-  Wrench,
-  Github,
-  Layout,
-  Smile,
-  Folder,
-  Star,
-  Heart,
-  Globe,
-  Music,
-  Video,
-  ShoppingBag,
   Plus,
   Pencil,
   Trash2,
@@ -56,51 +39,6 @@ import {
   Check,
   GripVertical,
   FolderPlus,
-  // 新增图标
-  Archive,
-  Tag,
-  Terminal,
-  Database,
-  Server,
-  GitBranch,
-  Webhook,
-  Bug,
-  Paintbrush,
-  Layers,
-  Image,
-  Frame,
-  Target,
-  Calendar,
-  Clock,
-  ListChecks,
-  Settings,
-  StickyNote,
-  Newspaper,
-  Podcast,
-  Camera,
-  MessageCircle,
-  Mail,
-  Share2,
-  Link,
-  ShoppingCart,
-  CreditCard,
-  Wallet,
-  BarChart3,
-  TrendingUp,
-  Briefcase,
-  Map,
-  Compass,
-  Rocket,
-  Lightbulb,
-  Trophy,
-  Gamepad2,
-  Activity,
-  Coffee,
-  Plane,
-  Home,
-  Lock,
-  Cloud,
-  Download,
 } from 'lucide-react'
 import {
   DndContext,
@@ -119,79 +57,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  // 基础
-  BookmarkIcon: Bookmark,
-  FolderIcon: Folder,
-  StarIcon: Star,
-  HeartIcon: Heart,
-  ArchiveIcon: Archive,
-  TagIcon: Tag,
-  // 开发
-  CodeIcon: Code2,
-  TerminalIcon: Terminal,
-  DatabaseIcon: Database,
-  ServerIcon: Server,
-  GithubIcon: Github,
-  GitBranchIcon: GitBranch,
-  WebhookIcon: Webhook,
-  BugIcon: Bug,
-  // 设计
-  PaletteIcon: Palette,
-  LayoutIcon: Layout,
-  PaintbrushIcon: Paintbrush,
-  LayersIcon: Layers,
-  ImageIcon: Image,
-  FrameIcon: Frame,
-  SmileIcon: Smile,
-  // 效率
-  ZapIcon: Zap,
-  TargetIcon: Target,
-  CalendarIcon: Calendar,
-  ClockIcon: Clock,
-  ListChecksIcon: ListChecks,
-  WrenchIcon: Wrench,
-  SettingsIcon: Settings,
-  // 内容
-  BookOpenIcon: BookOpen,
-  FileTextIcon: FileText,
-  StickyNoteIcon: StickyNote,
-  NewspaperIcon: Newspaper,
-  VideoIcon: Video,
-  MusicIcon: Music,
-  PodcastIcon: Podcast,
-  CameraIcon: Camera,
-  // 社交
-  UsersIcon: Users,
-  MessageCircleIcon: MessageCircle,
-  MailIcon: Mail,
-  ShareIcon: Share2,
-  LinkIcon: Link,
-  // 商业
-  ShoppingBagIcon: ShoppingBag,
-  ShoppingCartIcon: ShoppingCart,
-  CreditCardIcon: CreditCard,
-  WalletIcon: Wallet,
-  BarChartIcon: BarChart3,
-  TrendingUpIcon: TrendingUp,
-  BriefcaseIcon: Briefcase,
-  // 其他
-  GlobeIcon: Globe,
-  MapIcon: Map,
-  CompassIcon: Compass,
-  RocketIcon: Rocket,
-  LightbulbIcon: Lightbulb,
-  TrophyIcon: Trophy,
-  GamepadIcon: Gamepad2,
-  ActivityIcon: Activity,
-  CoffeeIcon: Coffee,
-  PlaneIcon: Plane,
-  HomeIcon: Home,
-  LockIcon: Lock,
-  CloudIcon: Cloud,
-  DownloadIcon: Download,
-}
 
 interface CategoryManagerModalProps {
   open: boolean
@@ -239,7 +104,7 @@ function SortableCategoryItem({
     transition,
   }
 
-  const Icon = iconMap[category.icon] || Bookmark
+  const Icon = categoryIconMap[category.icon] || DefaultCategoryIcon
   const isAllCategory = category.id === 'all'
 
   return (
@@ -421,7 +286,7 @@ export function CategoryManagerModal({
     ...(cat.children || []),
   ])
 
-  const SelectedIcon = iconMap[editIcon] || Folder
+  const SelectedIcon = categoryIconMap[editIcon] || FolderCategoryIcon
 
   return (
     <>
@@ -521,7 +386,7 @@ export function CategoryManagerModal({
                       <ScrollArea className="h-32 rounded border p-2">
                         <div className="grid grid-cols-8 gap-1">
                           {categoryIcons.map(icon => {
-                            const IconComponent = iconMap[icon.value] || Folder
+                            const IconComponent = categoryIconMap[icon.value] || FolderCategoryIcon
                             return (
                               <button
                                 key={icon.value}
@@ -612,7 +477,7 @@ export function CategoryManagerModal({
                 </>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
-                  <Folder className="mb-2 size-8" />
+                  <FolderCategoryIcon className="mb-2 size-8" />
                   <p className="text-sm">选择分类进行编辑</p>
                   <p className="text-xs">或点击"新建"创建分类</p>
                 </div>

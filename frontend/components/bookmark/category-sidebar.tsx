@@ -1,77 +1,16 @@
 'use client'
 
 import { Category } from '@/lib/bookmark-data'
+import { categoryIconMap, DefaultCategoryIcon } from '@/lib/category-icons'
 import { cn } from '@/lib/utils'
 import {
   Bookmark,
-  Code2,
-  Palette,
-  Zap,
-  BookOpen,
-  Users,
-  FileText,
-  Wrench,
-  Github,
-  Layout,
-  Smile,
-  Folder,
-  Star,
-  Heart,
-  Globe,
-  Music,
-  Video,
-  ShoppingBag,
   ChevronRight,
   Plus,
   Upload,
   PanelLeftClose,
   PanelLeft,
   Settings2,
-  // 新增图标
-  Archive,
-  Tag,
-  Terminal,
-  Database,
-  Server,
-  GitBranch,
-  Webhook,
-  Bug,
-  Paintbrush,
-  Layers,
-  Image,
-  Frame,
-  Target,
-  Calendar,
-  Clock,
-  ListChecks,
-  Settings,
-  StickyNote,
-  Newspaper,
-  Podcast,
-  Camera,
-  MessageCircle,
-  Mail,
-  Share2,
-  Link,
-  ShoppingCart,
-  CreditCard,
-  Wallet,
-  BarChart3,
-  TrendingUp,
-  Briefcase,
-  Map,
-  Compass,
-  Rocket,
-  Lightbulb,
-  Trophy,
-  Gamepad2,
-  Activity,
-  Coffee,
-  Plane,
-  Home,
-  Lock,
-  Cloud,
-  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -84,79 +23,6 @@ import {
 import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  // 基础
-  BookmarkIcon: Bookmark,
-  FolderIcon: Folder,
-  StarIcon: Star,
-  HeartIcon: Heart,
-  ArchiveIcon: Archive,
-  TagIcon: Tag,
-  // 开发
-  CodeIcon: Code2,
-  TerminalIcon: Terminal,
-  DatabaseIcon: Database,
-  ServerIcon: Server,
-  GithubIcon: Github,
-  GitBranchIcon: GitBranch,
-  WebhookIcon: Webhook,
-  BugIcon: Bug,
-  // 设计
-  PaletteIcon: Palette,
-  LayoutIcon: Layout,
-  PaintbrushIcon: Paintbrush,
-  LayersIcon: Layers,
-  ImageIcon: Image,
-  FrameIcon: Frame,
-  SmileIcon: Smile,
-  // 效率
-  ZapIcon: Zap,
-  TargetIcon: Target,
-  CalendarIcon: Calendar,
-  ClockIcon: Clock,
-  ListChecksIcon: ListChecks,
-  WrenchIcon: Wrench,
-  SettingsIcon: Settings,
-  // 内容
-  BookOpenIcon: BookOpen,
-  FileTextIcon: FileText,
-  StickyNoteIcon: StickyNote,
-  NewspaperIcon: Newspaper,
-  VideoIcon: Video,
-  MusicIcon: Music,
-  PodcastIcon: Podcast,
-  CameraIcon: Camera,
-  // 社交
-  UsersIcon: Users,
-  MessageCircleIcon: MessageCircle,
-  MailIcon: Mail,
-  ShareIcon: Share2,
-  LinkIcon: Link,
-  // 商业
-  ShoppingBagIcon: ShoppingBag,
-  ShoppingCartIcon: ShoppingCart,
-  CreditCardIcon: CreditCard,
-  WalletIcon: Wallet,
-  BarChartIcon: BarChart3,
-  TrendingUpIcon: TrendingUp,
-  BriefcaseIcon: Briefcase,
-  // 其他
-  GlobeIcon: Globe,
-  MapIcon: Map,
-  CompassIcon: Compass,
-  RocketIcon: Rocket,
-  LightbulbIcon: Lightbulb,
-  TrophyIcon: Trophy,
-  GamepadIcon: Gamepad2,
-  ActivityIcon: Activity,
-  CoffeeIcon: Coffee,
-  PlaneIcon: Plane,
-  HomeIcon: Home,
-  LockIcon: Lock,
-  CloudIcon: Cloud,
-  DownloadIcon: Download,
-}
 
 interface CategorySidebarProps {
   categories: Category[]
@@ -194,7 +60,7 @@ function DroppableCategory({
   onToggle,
 }: DroppableCategoryProps) {
   const { setNodeRef, isOver } = useDroppable({ id: category.id })
-  const Icon = iconMap[category.icon] || Bookmark
+  const Icon = categoryIconMap[category.icon] || DefaultCategoryIcon
 
   if (isCollapsed) {
     return (
