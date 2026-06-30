@@ -16,6 +16,7 @@ const MAX_PORT_RETRIES = parseInt(process.env.PORT_RETRY_COUNT || (process.env.N
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const APP_VERSION = process.env.APP_VERSION || 'dev'
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'true'
+const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || '20mb'
 
 initDb()
 
@@ -36,8 +37,12 @@ app.use('/api', (_req, res, next) => {
   res.setHeader('Expires', '0')
   next()
 })
-app.use(express.json())
-app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+app.use(express.json({ limit: JSON_BODY_LIMIT }))
+app.use((err: Error & { status?: number; statusCode?: number; type?: string }, _req: Request, res: Response, next: NextFunction) => {
+  if (err.type === 'entity.too.large' || err.status === 413 || err.statusCode === 413) {
+    res.status(413).json({ error: `Request body too large. Limit is ${JSON_BODY_LIMIT}.` })
+    return
+  }
   if (err instanceof SyntaxError && 'body' in err) {
     res.status(400).json({ error: 'Invalid JSON body' })
     return

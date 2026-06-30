@@ -30,7 +30,7 @@ function normalizeUrl(url: string): string | null {
 
 function getBookmarkFavicon(link: HTMLAnchorElement, url: string): string | undefined {
   const icon = link.getAttribute('icon')
-  if (icon?.startsWith('data:image/') && icon.length <= 50000) {
+  if (icon?.startsWith('data:image/') && icon.length <= 12000) {
     return icon
   }
 
