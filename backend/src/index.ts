@@ -12,16 +12,30 @@ import tagsRouter from './routes/tags'
 import metaRouter from './routes/meta'
 
 const PORT = parseInt(process.env.PORT || '3001', 10)
+const MAX_PORT_RETRIES = parseInt(process.env.PORT_RETRY_COUNT || (process.env.NODE_ENV === 'production' ? '0' : '10'), 10)
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const APP_VERSION = process.env.APP_VERSION || 'dev'
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'true'
 
 initDb()
 
 const app = express()
 
+app.set('etag', false)
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
-app.use(cors({ origin: true, credentials: true }))
+app.use(cors({
+  origin: CORS_ORIGIN === 'true'
+    ? true
+    : CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean),
+  credentials: true,
+}))
 app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'))
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  next()
+})
 app.use(express.json())
 app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
@@ -92,6 +106,25 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   })
 })
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Bookmark manager API running on http://0.0.0.0:${PORT}`)
-})
+function listenWithFallback(port: number, remainingRetries: number) {
+  const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`Bookmark manager API running on http://0.0.0.0:${port}`)
+    if (port !== PORT) {
+      console.log(`Requested port ${PORT} was unavailable; using fallback port ${port}.`)
+    }
+  })
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE' && remainingRetries > 0) {
+      const nextPort = port + 1
+      console.warn(`Port ${port} is in use, trying ${nextPort}...`)
+      listenWithFallback(nextPort, remainingRetries - 1)
+      return
+    }
+
+    console.error(`Failed to start server on port ${port}:`, err)
+    process.exit(1)
+  })
+}
+
+listenWithFallback(PORT, MAX_PORT_RETRIES)

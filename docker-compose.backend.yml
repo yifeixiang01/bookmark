@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        APP_VERSION: ${APP_VERSION:-unknown}
+    volumes:
+      - bookmark-data:/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - PORT_RETRY_COUNT=0
+      - DATA_DIR=/data
+      - JWT_SECRET=${JWT_SECRET:-bookmark-manager-secret-key-change-in-production}
+      - CORS_ORIGIN=${CORS_ORIGIN:-true}
+    restart: unless-stopped
+
+volumes:
+  bookmark-data:

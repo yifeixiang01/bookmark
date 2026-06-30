@@ -8,9 +8,12 @@ function getToken(): string | null {
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken()
   const res = await fetch(`${API_BASE}${path}`, {
+    cache: 'no-store',
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
