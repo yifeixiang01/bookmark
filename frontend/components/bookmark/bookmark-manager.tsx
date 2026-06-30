@@ -19,6 +19,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   defaultDropAnimationSideEffects,
@@ -116,16 +117,18 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 6,
       },
     })
   )
 
   const dropAnimation = {
+    duration: 180,
+    easing: 'cubic-bezier(0.2, 0, 0, 1)',
     sideEffects: defaultDropAnimationSideEffects({
       styles: {
         active: {
-          opacity: '0.5',
+          opacity: '0.35',
         },
       },
     }),
@@ -133,6 +136,10 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string)
+  }
+
+  const handleDragCancel = () => {
+    setActiveDragId(null)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -143,9 +150,14 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
 
     const activeId = active.id as string
     const overId = over.id as string
+    const isActiveBookmark = allBookmarks.some(b => b.id === activeId)
+    const isOverBookmark = bookmarks.some(b => b.id === overId)
+    const isOverCategory = categories.some(category =>
+      category.id === overId || category.children?.some(child => child.id === overId)
+    )
 
     // Bookmark reordering within the list
-    if (activeId.startsWith('bookmark-') && overId.startsWith('bookmark-')) {
+    if (isActiveBookmark && isOverBookmark) {
       if (sortBy !== 'custom') {
         setSortBy('custom')
       }
@@ -159,7 +171,7 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
     }
 
     // Bookmark dropped on a category
-    if (activeId.startsWith('bookmark-') && !overId.startsWith('bookmark-') && overId !== 'all') {
+    if (isActiveBookmark && isOverCategory && overId !== 'all') {
       moveBookmarkToCategory(activeId, overId)
     }
   }
@@ -221,12 +233,14 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCenter}
       measuring={{
         droppable: {
-          strategy: MeasuringStrategy.BeforeDragging,
+          strategy: MeasuringStrategy.Always,
         },
       }}
       onDragStart={handleDragStart}
+      onDragCancel={handleDragCancel}
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full min-h-0 overflow-hidden">
@@ -401,7 +415,7 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
         {/* Drag overlay */}
         <DragOverlay dropAnimation={dropAnimation}>
           {activeBookmark && (
-            <div className="flex w-[80px] flex-col items-center gap-1.5 rounded-lg border border-primary bg-card p-2.5 shadow-2xl rotate-2 scale-110">
+            <div className="pointer-events-none flex w-[88px] select-none flex-col items-center gap-1.5 rounded-lg border border-primary/70 bg-card p-2.5 shadow-2xl ring-4 ring-primary/10">
               <div className="flex size-9 items-center justify-center rounded-md bg-secondary">
                 {getFaviconUrl(activeBookmark) ? (
                   <img

@@ -60,7 +60,7 @@ function SortableBookmarkCard({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
+    transition: transition || 'transform 180ms cubic-bezier(0.2, 0, 0, 1)',
   }
 
   const getTagColor = (tagName: string) => {
@@ -94,17 +94,18 @@ function SortableBookmarkCard({
                 ref={setNodeRef}
                 style={style}
                 className={cn(
-                  'group relative flex min-h-[98px] w-[84px] flex-col items-center justify-start gap-2 rounded-lg border border-border bg-card px-2 py-2 transition-all',
+                  'group relative flex min-h-[98px] w-[84px] flex-col items-center justify-start gap-2 rounded-lg border border-border bg-card px-2 py-2 transition-[transform,border-color,background-color,box-shadow,opacity] duration-150 will-change-transform',
                   'hover:border-primary/50 hover:bg-accent',
                   isManageMode && 'cursor-pointer',
                   isSelected && 'border-primary bg-primary/10',
-                  isDragging && 'z-[100] scale-110 rotate-2 opacity-90 shadow-2xl ring-2 ring-primary/50',
-                  sortable && 'cursor-grab'
+                  isDragging && 'z-[100] scale-[1.03] opacity-80 shadow-2xl ring-2 ring-primary/40',
+                  sortable && 'cursor-grab',
+                  isDragging && 'cursor-grabbing'
                 )}
               >
                 {enableDrag && (
                   <button
-                    className="absolute top-1.5 right-1.5 touch-none opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute top-1.5 right-1.5 touch-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
                     {...attributes}
                     {...listeners}
                   >

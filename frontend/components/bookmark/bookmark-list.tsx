@@ -60,7 +60,7 @@ function SortableBookmarkRow({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || 'transform 180ms cubic-bezier(0.2, 0, 0, 1)',
   }
 
   const getTagColor = (tagName: string) => {
@@ -94,17 +94,18 @@ function SortableBookmarkRow({
                 ref={setNodeRef}
                 style={style}
                 className={cn(
-                  'group flex items-center gap-3 px-3 py-1.5 transition-colors',
+                  'group flex items-center gap-3 px-3 py-1.5 transition-[transform,background-color,box-shadow,opacity] duration-150 will-change-transform',
                   'hover:bg-accent',
                   isManageMode && 'cursor-pointer',
                   isSelected && 'bg-primary/10',
-                  isDragging && 'z-50 bg-card opacity-50',
-                  sortable && 'cursor-grab'
+                  isDragging && 'z-50 bg-card opacity-80 shadow-lg',
+                  sortable && 'cursor-grab',
+                  isDragging && 'cursor-grabbing'
                 )}
               >
                 {enableDrag && (
                   <button
-                    className="shrink-0 touch-none opacity-0 transition-opacity group-hover:opacity-100"
+                    className="shrink-0 touch-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
                     {...attributes}
                     {...listeners}
                   >
