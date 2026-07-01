@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Category, categoryIcons, categoryColors } from '@/lib/bookmark-data'
 import { categoryIconMap, DefaultCategoryIcon, FolderCategoryIcon } from '@/lib/category-icons'
 import { cn } from '@/lib/utils'
@@ -73,6 +73,7 @@ interface SortableCategoryItemProps {
   category: Category
   depth?: number
   isSelected: boolean
+  draggable?: boolean
   onSelect: () => void
   onEdit: () => void
   onDelete: () => void
@@ -84,12 +85,14 @@ function SortableCategoryItem({
   category,
   depth = 0,
   isSelected,
+  draggable = true,
   onSelect,
   onEdit,
   onDelete,
   onAddChild,
   bookmarkCount,
 }: SortableCategoryItemProps) {
+  const sortable = useSortable({ id: category.id, disabled: !draggable || category.id === 'all' })
   const {
     attributes,
     listeners,
@@ -97,29 +100,32 @@ function SortableCategoryItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: category.id, disabled: category.id === 'all' })
+  } = sortable
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
+  const style = draggable
+    ? {
+        transform: CSS.Transform.toString(transform),
+        transition: transition || 'transform 180ms cubic-bezier(0.2, 0, 0, 1)',
+      }
+    : undefined
 
   const Icon = categoryIconMap[category.icon] || DefaultCategoryIcon
   const isAllCategory = category.id === 'all'
 
   return (
     <div
-      ref={setNodeRef}
+      ref={draggable ? setNodeRef : undefined}
       style={style}
       className={cn(
-        'flex items-center gap-2 rounded-md border p-2 transition-colors',
-        isDragging && 'opacity-50',
+        'flex items-center gap-2 rounded-md border p-2 transition-[transform,background-color,box-shadow,opacity] duration-150',
+        draggable && isDragging && 'opacity-50',
         isSelected ? 'border-primary bg-accent' : 'border-border bg-card hover:bg-accent/50',
         depth > 0 && 'ml-6'
       )}
     >
-      {!isAllCategory && (
+      {!isAllCategory && draggable && (
         <button
+          type="button"
           className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
           {...attributes}
           {...listeners}
@@ -127,7 +133,7 @@ function SortableCategoryItem({
           <GripVertical className="size-4" />
         </button>
       )}
-      {isAllCategory && <div className="w-4" />}
+      {(!draggable || isAllCategory) && <div className="w-4" />}
       
       <button
         onClick={onSelect}
@@ -196,7 +202,11 @@ export function CategoryManagerModal({
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -204,20 +214,24 @@ export function CategoryManagerModal({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    
-    if (over && active.id !== over.id) {
-      const oldIndex = categories.findIndex(c => c.id === active.id)
-      const newIndex = categories.findIndex(c => c.id === over.id)
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newCategories = arrayMove(categories, oldIndex, newIndex)
-        // Update order values
-        const reordered = newCategories.map((cat, index) => ({
+    if (!over || active.id === over.id) return
+
+    const topLevelCategories = sortedCategories.filter(cat => cat.id !== 'all')
+    const oldIndex = topLevelCategories.findIndex(c => c.id === active.id)
+    const newIndex = topLevelCategories.findIndex(c => c.id === over.id)
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newCategories = arrayMove(topLevelCategories, oldIndex, newIndex)
+      const reordered = [
+        sortedCategories.find(cat => cat.id === 'all'),
+        ...newCategories,
+      ]
+        .filter((cat): cat is Category => Boolean(cat))
+        .map((cat, index) => ({
           ...cat,
           order: index,
         }))
-        onReorderCategories(reordered)
-      }
+      onReorderCategories(reordered)
     }
   }
 
@@ -281,10 +295,10 @@ export function CategoryManagerModal({
     }
   }
 
-  const flatCategories = categories.flatMap(cat => [
-    cat,
-    ...(cat.children || []),
-  ])
+  const sortedCategories = useMemo(
+    () => [...categories].sort((a, b) => a.order - b.order),
+    [categories]
+  )
 
   const SelectedIcon = categoryIconMap[editIcon] || FolderCategoryIcon
 
@@ -317,15 +331,16 @@ export function CategoryManagerModal({
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext
-                    items={categories.map(c => c.id)}
+                    items={sortedCategories.filter(c => c.id !== 'all').map(c => c.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-1.5">
-                      {categories.map(category => (
+                      {sortedCategories.map(category => (
                         <div key={category.id}>
                           <SortableCategoryItem
                             category={category}
                             isSelected={selectedCategory?.id === category.id}
+                            draggable={category.id !== 'all' && !category.children?.length}
                             onSelect={() => setSelectedCategory(category)}
                             onEdit={() => handleStartEdit(category)}
                             onDelete={() => handleDeleteClick(category)}
@@ -338,6 +353,7 @@ export function CategoryManagerModal({
                               category={child}
                               depth={1}
                               isSelected={selectedCategory?.id === child.id}
+                              draggable={false}
                               onSelect={() => setSelectedCategory(child)}
                               onEdit={() => handleStartEdit(child)}
                               onDelete={() => handleDeleteClick(child)}

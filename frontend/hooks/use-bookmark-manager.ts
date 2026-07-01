@@ -368,14 +368,18 @@ export function useBookmarkManager() {
 
   const reorderBookmarks = useCallback(async (newOrder: Bookmark[]) => {
     const items = newOrder.map((b, i) => ({ id: b.id, sort_order: i }))
-    await api.bookmarks.reorder(items)
-    setBookmarks(prev => {
-      const orderMap = new Map(items.map(item => [item.id, item.sort_order]))
-      return prev.map(b => ({
-        ...b,
-        sortOrder: orderMap.get(b.id) ?? b.sortOrder,
-      }))
-    })
+    const orderMap = new Map(items.map(item => [item.id, item.sort_order]))
+    setBookmarks(prev => prev.map(b => ({
+      ...b,
+      sortOrder: orderMap.get(b.id) ?? b.sortOrder,
+    })))
+
+    try {
+      await api.bookmarks.reorder(items)
+    } catch (error) {
+      console.error('Failed to reorder bookmarks:', error)
+      throw error
+    }
   }, [])
 
   const moveSelectedToCategory = useCallback(async (categoryId: string) => {

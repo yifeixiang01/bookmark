@@ -29,10 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className="overflow-hidden font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <div className="flex min-h-screen flex-col bg-background">
-            <div className="min-h-0 flex-1">
+          <div className="flex h-screen flex-col overflow-hidden bg-background">
+            <div className="min-h-0 flex-1 overflow-hidden">
               {children}
             </div>
             <a
