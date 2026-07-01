@@ -204,7 +204,6 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     } else {
-      // Scroll to top
       const scrollArea = document.querySelector('[data-radix-scroll-area-viewport]')
       if (scrollArea) {
         scrollArea.scrollTo({ top: 0, behavior: 'smooth' })
@@ -229,6 +228,40 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
   }
 
   const isAllSelected = bookmarks.length > 0 && selectedBookmarks.size === bookmarks.length
+  const renderBookmarkGroup = (group: (typeof groupedBookmarks)[number]) => (
+    <div
+      key={group.category.id}
+      id={`category-section-${group.category.id}`}
+    >
+      <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+        {group.category.name}
+        <span className="ml-2 text-xs font-normal text-muted-foreground/60">
+          ({group.bookmarks.length})
+        </span>
+      </h3>
+      {viewMode === 'grid' ? (
+        <BookmarkGrid
+          bookmarks={group.bookmarks}
+          isManageMode={isManageMode}
+          selectedBookmarks={selectedBookmarks}
+          onToggleSelection={toggleBookmarkSelection}
+          sortable={sortBy === 'custom' && !isManageMode}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      ) : (
+        <BookmarkList
+          bookmarks={group.bookmarks}
+          isManageMode={isManageMode}
+          selectedBookmarks={selectedBookmarks}
+          onToggleSelection={toggleBookmarkSelection}
+          sortable={sortBy === 'custom' && !isManageMode}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
+    </div>
+  )
 
   return (
     <DndContext
@@ -291,42 +324,9 @@ export function BookmarkManager({ user, onLogout }: BookmarkManagerProps) {
               </div>
             )}
 
-            {!loading && (
+            {!loading && groupedBookmarks.length > 0 && (
               <div className="space-y-8">
-                {groupedBookmarks.map((group) => (
-                  <div
-                    key={group.category.id}
-                    id={`category-section-${group.category.id}`}
-                  >
-                    <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      {group.category.name}
-                      <span className="ml-2 text-xs font-normal text-muted-foreground/60">
-                        ({group.bookmarks.length})
-                      </span>
-                    </h3>
-                    {viewMode === 'grid' ? (
-                      <BookmarkGrid
-                        bookmarks={group.bookmarks}
-                        isManageMode={isManageMode}
-                        selectedBookmarks={selectedBookmarks}
-                        onToggleSelection={toggleBookmarkSelection}
-                        sortable={sortBy === 'custom' && !isManageMode}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
-                    ) : (
-                      <BookmarkList
-                        bookmarks={group.bookmarks}
-                        isManageMode={isManageMode}
-                        selectedBookmarks={selectedBookmarks}
-                        onToggleSelection={toggleBookmarkSelection}
-                        sortable={sortBy === 'custom' && !isManageMode}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
-                    )}
-                  </div>
-                ))}
+                {groupedBookmarks.map(renderBookmarkGroup)}
               </div>
             )}
           </ScrollArea>

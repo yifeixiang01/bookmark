@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Bookmark, initialTags } from '@/lib/bookmark-data'
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -63,10 +64,12 @@ function SortableBookmarkRow({
     transition: transition || 'transform 180ms cubic-bezier(0.2, 0, 0, 1)',
   }
 
-  const getTagColor = (tagName: string) => {
-    const tag = initialTags.find((t) => t.name === tagName)
-    return tag?.color || '#6b7280'
-  }
+  const tagColorMap = useMemo(
+    () => new Map(initialTags.map(tag => [tag.name, tag.color])),
+    []
+  )
+
+  const getTagColor = (tagName: string) => tagColorMap.get(tagName) || '#6b7280'
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('zh-CN', {
@@ -93,21 +96,24 @@ function SortableBookmarkRow({
               <div
                 ref={setNodeRef}
                 style={style}
+                {...(enableDrag ? attributes : {})}
+                {...(enableDrag ? listeners : {})}
                 className={cn(
                   'group flex items-center gap-3 px-3 py-1.5 transition-[transform,background-color,box-shadow,opacity] duration-150 will-change-transform',
                   'hover:bg-accent',
                   isManageMode && 'cursor-pointer',
                   isSelected && 'bg-primary/10',
                   isDragging && 'z-50 bg-card opacity-80 shadow-lg',
-                  sortable && 'cursor-grab',
+                  enableDrag && 'cursor-grab',
                   isDragging && 'cursor-grabbing'
                 )}
               >
                 {enableDrag && (
                   <button
-                    className="shrink-0 touch-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                    {...attributes}
-                    {...listeners}
+                    type="button"
+                    className="pointer-events-none shrink-0 touch-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                    tabIndex={-1}
+                    aria-hidden="true"
                   >
                     <GripVertical className="size-5 text-muted-foreground" />
                   </button>

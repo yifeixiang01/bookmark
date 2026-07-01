@@ -77,6 +77,29 @@ router.post('/', (req: AuthRequest, res) => {
   res.status(201).json({ id: categoryId, name, icon, color, parent_id, sort_order: maxOrder.max_order + 1 })
 })
 
+router.put('/reorder', (req: AuthRequest, res) => {
+  const schema = z.array(
+    z.object({
+      id: z.string(),
+      sort_order: z.number().int(),
+    })
+  )
+  const parsed = schema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.format() })
+    return
+  }
+
+  const update = db.prepare('UPDATE categories SET sort_order = ? WHERE id = ? AND user_id = ?')
+  const reorder = db.transaction((items: { id: string; sort_order: number }[]) => {
+    for (const item of items) {
+      update.run(item.sort_order, item.id, req.userId)
+    }
+  })
+  reorder(parsed.data)
+  res.status(204).send()
+})
+
 router.put('/:id', (req: AuthRequest, res) => {
   const schema = z.object({
     name: z.string().min(1).optional(),
@@ -127,29 +150,6 @@ router.delete('/:id', (req: AuthRequest, res) => {
     res.status(404).json({ error: 'Category not found' })
     return
   }
-  res.status(204).send()
-})
-
-router.put('/reorder', (req: AuthRequest, res) => {
-  const schema = z.array(
-    z.object({
-      id: z.string(),
-      sort_order: z.number().int(),
-    })
-  )
-  const parsed = schema.safeParse(req.body)
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.format() })
-    return
-  }
-
-  const update = db.prepare('UPDATE categories SET sort_order = ? WHERE id = ? AND user_id = ?')
-  const reorder = db.transaction((items: { id: string; sort_order: number }[]) => {
-    for (const item of items) {
-      update.run(item.sort_order, item.id, req.userId)
-    }
-  })
-  reorder(parsed.data)
   res.status(204).send()
 })
 
